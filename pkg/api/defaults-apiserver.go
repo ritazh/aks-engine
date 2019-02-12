@@ -29,7 +29,6 @@ func (cs *ContainerService) setAPIServerConfig() {
 		"--tls-cert-file":               "/etc/kubernetes/certs/apiserver.crt",
 		"--tls-private-key-file":        "/etc/kubernetes/certs/apiserver.key",
 		"--client-ca-file":              "/etc/kubernetes/certs/ca.crt",
-		"--repair-malformed-updates":    "false",
 		"--service-account-key-file":    "/etc/kubernetes/certs/apiserver.key",
 		"--kubelet-client-certificate":  "/etc/kubernetes/certs/client.crt",
 		"--kubelet-client-key":          "/etc/kubernetes/certs/client.key",
@@ -71,7 +70,6 @@ func (cs *ContainerService) setAPIServerConfig() {
 	// Enable cloudprovider if we're not using cloud controller manager
 	if !to.Bool(o.KubernetesConfig.UseCloudControllerManager) {
 		staticAPIServerConfig["--cloud-provider"] = "azure"
-		staticAPIServerConfig["--cloud-config"] = "/etc/kubernetes/azure.json"
 	}
 
 	// AAD configuration

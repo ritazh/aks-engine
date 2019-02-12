@@ -7,9 +7,12 @@ metadata:
   name: system:azure-cloud-provider
 rules:
 - apiGroups: [""]
-  resources: ["events"]
+  resources:
+  - configmaps
+  - events
   verbs:
   - create
+  - list
   - patch
   - update
 ---

@@ -141,6 +141,11 @@ configureK8s() {
     chmod 0600 "${AZURE_JSON_PATH}"
     chown root:root "${AZURE_JSON_PATH}"
 
+    CLOUDCONFIG_CONFIGMAP_PATH="/etc/kubernetes/manifests/cloudconfig-configmap.yaml"
+    touch "${CLOUDCONFIG_CONFIGMAP_PATH}"
+    chmod 0600 "${CLOUDCONFIG_CONFIGMAP_PATH}"
+    chown root:root "${CLOUDCONFIG_CONFIGMAP_PATH}"
+
     set +x
     echo "${KUBELET_PRIVATE_KEY}" | base64 --decode > "${KUBELET_PRIVATE_KEY_PATH}"
     echo "${APISERVER_PUBLIC_KEY}" | base64 --decode > "${APISERVER_PUBLIC_KEY_PATH}"
@@ -182,6 +187,49 @@ configureK8s() {
     "providerKeyName": "k8s",
     "providerKeyVersion": ""
 }
+EOF
+    cat << EOF > "${CLOUDCONFIG_CONFIGMAP_PATH}"
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloud-config
+  namespace: kube-system
+data:
+  config: |
+    {
+        "cloud":"${TARGET_ENVIRONMENT}",
+        "tenantId": "${TENANT_ID}",
+        "subscriptionId": "${SUBSCRIPTION_ID}",
+        "aadClientId": "${SERVICE_PRINCIPAL_CLIENT_ID}",
+        "aadClientSecret": "${SERVICE_PRINCIPAL_CLIENT_SECRET}",
+        "resourceGroup": "${RESOURCE_GROUP}",
+        "location": "${LOCATION}",
+        "vmType": "${VM_TYPE}",
+        "subnetName": "${SUBNET}",
+        "securityGroupName": "${NETWORK_SECURITY_GROUP}",
+        "vnetName": "${VIRTUAL_NETWORK}",
+        "vnetResourceGroup": "${VIRTUAL_NETWORK_RESOURCE_GROUP}",
+        "routeTableName": "${ROUTE_TABLE}",
+        "primaryAvailabilitySetName": "${PRIMARY_AVAILABILITY_SET}",
+        "primaryScaleSetName": "${PRIMARY_SCALE_SET}",
+        "cloudProviderBackoff": ${CLOUDPROVIDER_BACKOFF},
+        "cloudProviderBackoffRetries": ${CLOUDPROVIDER_BACKOFF_RETRIES},
+        "cloudProviderBackoffExponent": ${CLOUDPROVIDER_BACKOFF_EXPONENT},
+        "cloudProviderBackoffDuration": ${CLOUDPROVIDER_BACKOFF_DURATION},
+        "cloudProviderBackoffJitter": ${CLOUDPROVIDER_BACKOFF_JITTER},
+        "cloudProviderRatelimit": ${CLOUDPROVIDER_RATELIMIT},
+        "cloudProviderRateLimitQPS": ${CLOUDPROVIDER_RATELIMIT_QPS},
+        "cloudProviderRateLimitBucket": ${CLOUDPROVIDER_RATELIMIT_BUCKET},
+        "useManagedIdentityExtension": ${USE_MANAGED_IDENTITY_EXTENSION},
+        "userAssignedIdentityID": "${USER_ASSIGNED_IDENTITY_ID}",
+        "useInstanceMetadata": ${USE_INSTANCE_METADATA},
+        "loadBalancerSku": "${LOAD_BALANCER_SKU}",
+        "excludeMasterFromStandardLB": ${EXCLUDE_MASTER_FROM_STANDARD_LB},
+        "providerVaultName": "${KMS_PROVIDER_VAULT_NAME}",
+        "maximumLoadBalancerRuleCount": ${MAXIMUM_LOADBALANCER_RULE_COUNT},
+        "providerKeyName": "k8s",
+        "providerKeyVersion": ""
+    }
 EOF
     set -x
     if [[ ! -z "${MASTER_NODE}" ]]; then
@@ -292,6 +340,13 @@ ensureJournal(){
     echo "RuntimeMaxUse=1G" >> /etc/systemd/journald.conf
     echo "ForwardToSyslog=no" >> /etc/systemd/journald.conf
     systemctlEnableAndStart systemd-journald || exit $ERR_SYSTEMCTL_START_FAIL
+}
+
+ensureCloudConfig() {
+    CLOUDCONFIG_CONFIGMAP_FILE="/etc/kubernetes/manifests/cloudconfig-configmap.yaml"
+    if [ -f $CLOUDCONFIG_CONFIGMAP_FILE ]; then
+        $KUBECTL create -f $CLOUDCONFIG_CONFIGMAP_FILE
+    fi
 }
 
 ensurePodSecurityPolicy() {

@@ -144,6 +144,7 @@ if [[ ! -z "${MASTER_NODE}" ]]; then
     fi
     ensureK8sControlPlane
     ensurePodSecurityPolicy
+    ensureCloudConfig
 fi
 
 if $FULL_INSTALL_REQUIRED; then

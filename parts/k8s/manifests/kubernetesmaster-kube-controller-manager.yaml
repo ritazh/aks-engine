@@ -22,6 +22,8 @@ spec:
         - name: msi
           mountPath: /var/lib/waagent/ManagedIdentity-Settings
           readOnly: true
+        - name: kubeconfig
+          mountPath: /root/.kube
   volumes:
     - name: etc-kubernetes
       hostPath:
@@ -32,3 +34,6 @@ spec:
     - name: msi
       hostPath:
         path: /var/lib/waagent/ManagedIdentity-Settings
+    - name: kubeconfig
+      hostPath:
+        path: /home/azureuser/.kube
