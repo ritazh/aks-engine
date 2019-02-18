@@ -141,7 +141,7 @@ configureK8s() {
     chmod 0600 "${AZURE_JSON_PATH}"
     chown root:root "${AZURE_JSON_PATH}"
 
-    CLOUDCONFIG_CONFIGMAP_PATH="/etc/kubernetes/manifests/cloudconfig-configmap.yaml"
+    CLOUDCONFIG_CONFIGMAP_PATH="/etc/kubernetes/cloudconfig-configmap.yaml"
     touch "${CLOUDCONFIG_CONFIGMAP_PATH}"
     chmod 0600 "${CLOUDCONFIG_CONFIGMAP_PATH}"
     chown root:root "${CLOUDCONFIG_CONFIGMAP_PATH}"
@@ -343,7 +343,7 @@ ensureJournal(){
 }
 
 ensureCloudConfig() {
-    CLOUDCONFIG_CONFIGMAP_FILE="/etc/kubernetes/manifests/cloudconfig-configmap.yaml"
+    CLOUDCONFIG_CONFIGMAP_FILE="/etc/kubernetes/cloudconfig-configmap.yaml"
     if [ -f $CLOUDCONFIG_CONFIGMAP_FILE ]; then
         $KUBECTL create -f $CLOUDCONFIG_CONFIGMAP_FILE
     fi
